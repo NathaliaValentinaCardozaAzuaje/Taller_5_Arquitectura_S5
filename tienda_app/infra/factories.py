@@ -1,7 +1,5 @@
 import os
-
 from .gateways import BancoNacionalProcesador
-
 
 class MockPaymentProcessor:
     def pagar(self, monto: float) -> bool:

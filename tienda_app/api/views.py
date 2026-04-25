@@ -1,11 +1,11 @@
+from typing import Any, cast
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from tienda_app.infra.factories import PaymentFactory
-from tienda_app.services import CompraService
-
 from .serializers import OrdenInputSerializer
+from tienda_app.services import CompraService
+from tienda_app.infra.factories import PaymentFactory
 
 
 class CompraAPIView(APIView):
@@ -20,25 +20,32 @@ class CompraAPIView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        datos = serializer.validated_data
+        datos = cast(dict[str, Any], serializer.validated_data)
+        libro_id = datos.get('libro_id')
+        direccion = datos.get('direccion_envio', '')
+        cantidad = datos.get('cantidad', 1)
+
+        if libro_id is None:
+            return Response({'error': 'libro_id es requerido'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             gateway = PaymentFactory.get_processor()
             servicio = CompraService(procesador_pago=gateway)
             usuario = request.user if request.user.is_authenticated else None
-            resultado = servicio.ejecutar_compra(
-                libro_id=datos['libro_id'],
-                cantidad=datos.get('cantidad', 1),
-                direccion=datos['direccion_envio'],
+            orden = servicio.ejecutar_compra(
+                libro_id=libro_id,
+                direccion=direccion,
+                cantidad=cantidad,
                 usuario=usuario,
             )
 
             return Response(
                 {
                     'estado': 'exito',
-                    'mensaje': f'Orden creada. Total: {resultado}',
-                },
-                status=status.HTTP_201_CREATED,
+                    'orden_id': orden.pk,
+                    'total': str(orden.total),
+                    'mensaje': f'Orden creada. Total: {orden.total}',
+                }, status=status.HTTP_201_CREATED,
             )
 
         except ValueError as e:

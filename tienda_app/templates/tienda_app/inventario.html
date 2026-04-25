@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventario</title>
+</head>
+<body>
+    <h1>Inventario Actual</h1>
+
+    {% if inventario %}
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Libro ID</th>
+                    <th>Titulo</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Comprar HTML</th>
+                    <th>Compra Rapida</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inventario %}
+                    <tr>
+                        <td>{{ item.libro.id }}</td>
+                        <td>{{ item.libro.titulo }}</td>
+                        <td>${{ item.libro.precio }}</td>
+                        <td>{{ item.cantidad }}</td>
+                        <td><a href="/compra/{{ item.libro.id }}/">Ir a compra</a></td>
+                        <td><a href="/compra-rapida/{{ item.libro.id }}/">Ir a compra rapida</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay registros de inventario.</p>
+    {% endif %}
+</body>
+</html>
