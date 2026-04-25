@@ -3,9 +3,15 @@ from tienda_app.models import Libro, Orden
 
 
 class LibroSerializer(serializers.ModelSerializer):
+    stock_actual = serializers.SerializerMethodField()
+
     class Meta:
         model = Libro
         fields = ['id', 'titulo', 'precio', 'stock_actual']
+
+    def get_stock_actual(self, obj):
+        inventario = getattr(obj, 'inventario', None)
+        return inventario.cantidad if inventario else 0
 
 class OrdenInputSerializer(serializers.Serializer):
     libro_id = serializers.IntegerField()
